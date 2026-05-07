@@ -39,3 +39,5 @@ jwt:
 logging:
   level:
     com.tripweaver: DEBUG
+  file:
+    name: logs/tripweaver.log
