@@ -24,9 +24,9 @@ npm run test:run   # 运行测试 (单次)
 
 ## 技术栈
 
-- 后端: Java 21 + Spring Boot 3.4 + Spring AI 1.0.0-M4
+- 后端: Java 21 + Spring Boot 3.5.14 + Spring AI 1.1.5
 - 前端: Vue 3 + Vite + Pinia + Vue Router
-- 数据库: H2 (内存)
+- 数据库: SQLite (生产) / H2 (测试)
 - AI: Spring AI OpenAI (可配置其他模型)
 
 ## 架构要点
@@ -40,6 +40,8 @@ com.tripweaver/
 ├── repository/    # 数据访问
 ├── security/      # JWT 认证
 ├── dto/           # 数据传输对象
+├── ai/            # AI 服务集成
+├── tools/         # AI 工具定义
 └── config/        # 配置类
 ```
 
@@ -55,6 +57,10 @@ JWT Token 认证，前端存储于 Pinia store，请求时通过 Authorization h
 ### 环境变量
 - `OPENAI_API_KEY` - AI 模型 API Key
 - `JWT_SECRET` - JWT 签名密钥
+
+### 数据库
+- 生产环境: SQLite (`./data/tripweaver.db`)
+- 测试环境: H2 内存数据库
 
 ## 测试约定
 
