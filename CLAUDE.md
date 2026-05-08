@@ -54,9 +54,21 @@ com.tripweaver/
 ### 认证机制
 JWT Token 认证，前端存储于 Pinia store，请求时通过 Authorization header 传递。
 
-### 环境变量
+### 环境配置
+
+复制 `.env.example` 为 `.env` 并填入配置：
+
+```bash
+cp .env.example .env
+```
+
+必需配置：
 - `OPENAI_API_KEY` - AI 模型 API Key
-- `JWT_SECRET` - JWT 签名密钥
+- `JWT_SECRET` - JWT 签名密钥（至少32字符）
+
+可选配置（用于非 OpenAI 模型）：
+- `SPRING_AI_OPENAI_BASE_URL` - API 基础 URL
+- `SPRING_AI_OPENAI_CHAT_OPTIONS_MODEL` - 模型名称
 
 ### 数据库
 - 生产环境: SQLite (`./data/tripweaver.db`)

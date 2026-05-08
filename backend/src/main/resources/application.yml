@@ -21,9 +21,10 @@ spring:
   ai:
     openai:
       api-key: ${OPENAI_API_KEY:sk-test-key}
+      base-url: ${SPRING_AI_OPENAI_BASE_URL:https://api.openai.com}
       chat:
         options:
-          model: gpt-4o
+          model: ${SPRING_AI_OPENAI_CHAT_OPTIONS_MODEL:gpt-4o}
           temperature: 0.7
 
 jwt:
