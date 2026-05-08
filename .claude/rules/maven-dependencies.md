@@ -12,6 +12,8 @@ paths:
 1. 该依赖不在 Spring Boot 的依赖管理中
 2. 有明确的业务需求需要使用特定版本
 
+不在 Spring Boot 管理中的依赖，版本号**必须统一定义在 `<properties>` 中**。
+
 ## 依赖添加流程
 
 1. 先检查依赖是否由 Spring Boot 管理：查看 [Spring Boot Dependencies BOM](https://repo1.maven.org/maven2/org/springframework/boot/spring-boot-dependencies/)
