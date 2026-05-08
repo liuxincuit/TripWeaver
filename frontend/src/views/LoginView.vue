@@ -1,21 +1,115 @@
 <template>
-  <div class="login-container">
-    <div class="login-box">
-      <h1>TripWeaver</h1>
-      <h2>登录</h2>
-      <form @submit.prevent="handleLogin">
-        <div class="form-group">
-          <input v-model="form.username" type="text" placeholder="用户名" required />
+  <div class="login-page paper-texture">
+    <!-- Decorative Background Elements -->
+    <div class="bg-decoration">
+      <div class="compass-rose"></div>
+      <div class="map-lines"></div>
+    </div>
+
+    <div class="login-container">
+      <!-- Left Panel - Branding -->
+      <div class="brand-panel">
+        <div class="brand-content">
+          <div class="brand-icon">
+            <svg viewBox="0 0 80 80" class="logo-svg">
+              <circle cx="40" cy="40" r="38" fill="none" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M40 10 L40 70" stroke="currentColor" stroke-width="1" opacity="0.5"/>
+              <path d="M10 40 L70 40" stroke="currentColor" stroke-width="1" opacity="0.5"/>
+              <path d="M40 20 L50 35 L40 50 L30 35 Z" fill="currentColor" opacity="0.8"/>
+              <circle cx="40" cy="40" r="4" fill="currentColor"/>
+              <text x="40" y="75" text-anchor="middle" class="logo-text">N</text>
+            </svg>
+          </div>
+          <h1 class="brand-title">TripWeaver</h1>
+          <p class="brand-tagline font-handwritten">探索世界的每一个角落</p>
+
+          <div class="brand-features">
+            <div class="feature-item">
+              <span class="feature-icon">◈</span>
+              <span>AI 智能规划行程</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">◈</span>
+              <span>个性化旅行方案</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">◈</span>
+              <span>一站式行程管理</span>
+            </div>
+          </div>
         </div>
-        <div class="form-group">
-          <input v-model="form.password" type="password" placeholder="密码" required />
+
+        <div class="brand-footer">
+          <span class="ornament"></span>
+          <span class="font-handwritten">开启你的旅程</span>
+          <span class="ornament"></span>
         </div>
-        <button type="submit" :disabled="loading">
-          {{ loading ? '登录中...' : '登录' }}
-        </button>
-        <p v-if="error" class="error">{{ error }}</p>
-      </form>
-      <router-link to="/register">没有账号？立即注册</router-link>
+      </div>
+
+      <!-- Right Panel - Login Form -->
+      <div class="form-panel">
+        <div class="form-card card">
+          <div class="form-header">
+            <h2 class="form-title font-display">欢迎回来</h2>
+            <p class="form-subtitle">请登录你的账户继续探索</p>
+          </div>
+
+          <form @submit.prevent="handleLogin" class="login-form">
+            <div class="form-group">
+              <label class="form-label">用户名</label>
+              <div class="input-wrapper">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <input
+                  v-model="form.username"
+                  type="text"
+                  class="input"
+                  placeholder="请输入用户名"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">密码</label>
+              <div class="input-wrapper">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <input
+                  v-model="form.password"
+                  type="password"
+                  class="input"
+                  placeholder="请输入密码"
+                  required
+                />
+              </div>
+            </div>
+
+            <div v-if="error" class="error-message">
+              <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              {{ error }}
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" :disabled="loading">
+              <span v-if="loading" class="loading-spinner"></span>
+              <span>{{ loading ? '登录中...' : '登录' }}</span>
+            </button>
+          </form>
+
+          <div class="form-footer">
+            <p>还没有账户？</p>
+            <router-link to="/register" class="link-accent">立即注册</router-link>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -42,7 +136,7 @@ async function handleLogin() {
     await userStore.login(form.value)
     router.push('/')
   } catch (e) {
-    error.value = e.response?.data?.message || '登录失败'
+    error.value = e.response?.data?.message || '登录失败，请检查用户名和密码'
   } finally {
     loading.value = false
   }
@@ -50,62 +144,328 @@ async function handleLogin() {
 </script>
 
 <style scoped>
-.login-container {
+.login-page {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: var(--space-lg);
+  position: relative;
+  overflow: hidden;
 }
-.login-box {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+
+/* Background Decorations */
+.bg-decoration {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.compass-rose {
+  position: absolute;
+  top: -100px;
+  right: -100px;
+  width: 400px;
+  height: 400px;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ccircle cx='100' cy='100' r='95' fill='none' stroke='%233d2b1f' stroke-width='2'/%3E%3Cpath d='M100 10 L100 190' stroke='%233d2b1f' stroke-width='1'/%3E%3Cpath d='M10 100 L190 100' stroke='%233d2b1f' stroke-width='1'/%3E%3Cpath d='M100 20 L120 100 L100 180 L80 100 Z' fill='%233d2b1f' opacity='0.3'/%3E%3Cpath d='M20 100 L100 80 L180 100 L100 120 Z' fill='%233d2b1f' opacity='0.2'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.map-lines {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  opacity: 0.03;
+  background-image:
+    linear-gradient(0deg, var(--color-espresso) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-espresso) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+/* Login Container */
+.login-container {
+  display: flex;
   width: 100%;
-  max-width: 400px;
+  max-width: 1000px;
+  min-height: 600px;
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+  position: relative;
+  animation: fadeInUp 0.6s ease forwards;
 }
-h1 {
-  color: #1890ff;
-  text-align: center;
-  margin-bottom: 0.5rem;
-}
-h2 {
-  text-align: center;
-  margin-bottom: 1.5rem;
-  color: #333;
-}
-.form-group {
-  margin-bottom: 1rem;
-}
-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-button {
-  width: 100%;
-  padding: 0.75rem;
-  background: #1890ff;
+
+/* Brand Panel */
+.brand-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--space-3xl);
+  background: linear-gradient(
+    135deg,
+    var(--color-teal-dark) 0%,
+    var(--color-teal) 50%,
+    var(--color-teal-light) 100%
+  );
   color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.brand-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+.brand-content {
+  position: relative;
+  z-index: 1;
+}
+
+.brand-icon {
+  width: 80px;
+  height: 80px;
+  margin-bottom: var(--space-xl);
+}
+
+.logo-svg {
+  width: 100%;
+  height: 100%;
+  color: white;
+}
+
+.logo-text {
+  font-family: var(--font-display);
+  font-size: 12px;
+  fill: white;
+}
+
+.brand-title {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: var(--space-sm);
+  letter-spacing: -0.02em;
+}
+
+.brand-tagline {
+  font-size: 1.5rem;
+  opacity: 0.9;
+  margin-bottom: var(--space-2xl);
+}
+
+.brand-features {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  font-size: 0.95rem;
+  opacity: 0.9;
+}
+
+.feature-icon {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.brand-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  position: relative;
+  z-index: 1;
+}
+
+.brand-footer .ornament {
+  flex: 1;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+}
+
+.brand-footer span:not(.ornament) {
+  font-size: 1.1rem;
+  opacity: 0.8;
+}
+
+/* Form Panel */
+.form-panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2xl);
+  background: var(--color-surface);
+}
+
+.form-card {
+  width: 100%;
+  max-width: 360px;
+  padding: var(--space-xl);
+  background: transparent;
   border: none;
-  border-radius: 4px;
+  box-shadow: none;
+}
+
+.form-card::before {
+  display: none;
+}
+
+.form-header {
+  text-align: center;
+  margin-bottom: var(--space-2xl);
+}
+
+.form-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--space-sm);
+}
+
+.form-subtitle {
+  color: var(--color-text-light);
+  font-size: 0.95rem;
+}
+
+/* Form Styles */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.form-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text);
+  letter-spacing: 0.02em;
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: var(--space-md);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--color-text-light);
+  pointer-events: none;
+}
+
+.input-wrapper .input {
+  padding-left: calc(var(--space-md) * 2 + 18px);
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: rgba(166, 93, 63, 0.1);
+  border: 1px solid var(--color-rust);
+  border-radius: var(--radius-md);
+  color: var(--color-rust);
+  font-size: 0.9rem;
+}
+
+.error-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.btn-block {
+  width: 100%;
+  padding: var(--space-md) var(--space-lg);
   font-size: 1rem;
-  cursor: pointer;
+  margin-top: var(--space-sm);
 }
-button:disabled {
-  background: #ccc;
+
+.loading-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
-.error {
-  color: red;
-  text-align: center;
-  margin-top: 1rem;
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
-a {
-  display: block;
-  text-align: center;
-  margin-top: 1rem;
-  color: #1890ff;
+
+.form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-xl);
+  padding-top: var(--space-xl);
+  border-top: 1px solid var(--color-border-light);
+  color: var(--color-text-light);
+  font-size: 0.9rem;
+}
+
+.link-accent {
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+.link-accent:hover {
+  color: var(--color-accent-dark);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .login-container {
+    flex-direction: column;
+    max-width: 400px;
+  }
+
+  .brand-panel {
+    padding: var(--space-xl);
+    min-height: auto;
+  }
+
+  .brand-title {
+    font-size: 2rem;
+  }
+
+  .brand-features {
+    display: none;
+  }
+
+  .brand-footer {
+    display: none;
+  }
+
+  .form-panel {
+    padding: var(--space-lg);
+  }
 }
 </style>
