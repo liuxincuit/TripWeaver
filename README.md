@@ -46,6 +46,7 @@ npm run dev
 |------|------|------|
 | `OPENAI_API_KEY` | AI 模型 API Key | 是 |
 | `JWT_SECRET` | JWT 签名密钥 | 是 |
+| `SEARXNG_BASE_URL` | SearXNG 搜索服务地址 | 是 |
 | `SPRING_AI_OPENAI_BASE_URL` | API 基础 URL | 否 |
 | `SPRING_AI_OPENAI_CHAT_OPTIONS_MODEL` | 模型名称 | 否 |
 
