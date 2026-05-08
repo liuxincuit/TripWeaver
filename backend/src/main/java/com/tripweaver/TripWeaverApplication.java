@@ -1,10 +1,13 @@
 package com.tripweaver;
 
+import com.tripweaver.config.SearXNGProperties;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @SpringBootApplication
+@EnableConfigurationProperties(SearXNGProperties.class)
 public class TripWeaverApplication {
 
     public static void main(String[] args) {

@@ -36,3 +36,8 @@ logging:
     com.tripweaver: DEBUG
   file:
     name: logs/tripweaver.log
+
+searxng:
+  base-url: ${SEARXNG_BASE_URL}
+  retry-count: 3
+  retry-delay-ms: 1000
