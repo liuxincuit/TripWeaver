@@ -1,5 +1,6 @@
 package com.tripweaver.ai;
 
+import com.tripweaver.tools.WebSearchTool;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 public class AiService {
 
     private final ChatClient chatClient;
+    private final WebSearchTool webSearchTool;
 
     private static final String SYSTEM_PROMPT = """
         你是一个专业的旅行规划助手。你的任务是帮助用户规划完美的旅行。
@@ -83,6 +85,7 @@ public class AiService {
         return chatClient.prompt()
                 .system(SYSTEM_PROMPT)
                 .user(userMessage)
+                .tools(webSearchTool)
                 .call()
                 .content();
     }
@@ -92,6 +95,7 @@ public class AiService {
         return chatClient.prompt()
                 .system(SYSTEM_PROMPT)
                 .user(fullPrompt)
+                .tools(webSearchTool)
                 .call()
                 .content();
     }
