@@ -23,7 +23,7 @@ public class ChatService {
     public String sendMessage(Long planId, String message) {
         User user = userService.getCurrentUser();
 
-        // 获取或创建对话
+        // 确保对话记录存在
         Conversation conversation = conversationRepository.findByPlanIdAndUserId(planId, user.getId())
                 .orElseGet(() -> {
                     Conversation newConv = new Conversation();
@@ -33,14 +33,8 @@ public class ChatService {
                     return conversationRepository.save(newConv);
                 });
 
-        // 调用 AI 服务
-        String history = conversation.getMessages();
-        String response = aiService.chat(message, history);
-
-        // 更新对话历史
-        String updatedMessages = updateConversationHistory(history, message, response);
-        conversation.setMessages(updatedMessages);
-        conversationRepository.save(conversation);
+        // ChatMemory Advisor 基于 conversationId 自动管理对话历史
+        String response = aiService.chat(message, planId.toString());
 
         return response;
     }
@@ -67,20 +61,5 @@ public class ChatService {
     public Optional<Conversation> getConversation(Long planId) {
         User user = userService.getCurrentUser();
         return conversationRepository.findByPlanIdAndUserId(planId, user.getId());
-    }
-
-    private String updateConversationHistory(String history, String userMessage, String assistantResponse) {
-        // 简单实现：追加消息到历史记录
-        // 实际项目中应该使用 JSON 数组
-        return history.replace("]", String.format(
-            ",{\"role\":\"user\",\"content\":\"%s\"},{\"role\":\"assistant\",\"content\":\"%s\"}]",
-            escapeJson(userMessage), escapeJson(assistantResponse)
-        ));
-    }
-
-    private String escapeJson(String text) {
-        return text.replace("\\", "\\\\")
-                   .replace("\"", "\\\"")
-                   .replace("\n", "\\n");
     }
 }
