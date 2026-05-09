@@ -20,6 +20,8 @@ npm run dev        # 启动开发服务器
 npm run build      # 构建生产版本
 npm run test       # 运行测试 (watch 模式)
 npm run test:run   # 运行测试 (单次)
+npm run test:e2e   # 运行端到端测试 (需先启动后端)
+npm run test:e2e:ui # 带 UI 运行端到端测试
 ```
 
 ## 技术栈
@@ -78,3 +80,10 @@ cp .env.example .env
 ## 测试约定
 
 后端使用 Spring Boot Test + Spring Security Test，前端使用 Vitest + Vue Test Utils。
+
+### E2E 测试约定
+
+- 使用 Playwright 进行端到端测试
+- 测试文件位于 `frontend/src/e2e/`
+- 关键元素使用 `data-testid` 属性定位
+- 运行 E2E 测试前需启动后端服务

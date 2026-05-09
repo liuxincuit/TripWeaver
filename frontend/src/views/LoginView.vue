@@ -67,6 +67,7 @@
                   type="text"
                   class="input"
                   placeholder="请输入用户名"
+                  data-testid="username-input"
                   required
                 />
               </div>
@@ -84,12 +85,13 @@
                   type="password"
                   class="input"
                   placeholder="请输入密码"
+                  data-testid="password-input"
                   required
                 />
               </div>
             </div>
 
-            <div v-if="error" class="error-message">
+            <div v-if="error" class="error-message" data-testid="error-message">
               <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"/>
                 <line x1="12" y1="8" x2="12" y2="12"/>
@@ -98,7 +100,7 @@
               {{ error }}
             </div>
 
-            <button type="submit" class="btn btn-primary btn-block" :disabled="loading">
+            <button type="submit" class="btn btn-primary btn-block" :disabled="loading" data-testid="login-button">
               <span v-if="loading" class="loading-spinner"></span>
               <span>{{ loading ? '登录中...' : '登录' }}</span>
             </button>
@@ -106,7 +108,7 @@
 
           <div class="form-footer">
             <p>还没有账户？</p>
-            <router-link to="/register" class="link-accent">立即注册</router-link>
+            <router-link to="/register" class="link-accent" data-testid="register-link">立即注册</router-link>
           </div>
         </div>
       </div>

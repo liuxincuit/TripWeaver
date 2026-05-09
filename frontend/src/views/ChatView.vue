@@ -75,12 +75,13 @@
       </header>
 
       <!-- Messages Area -->
-      <div class="chat-messages" ref="messagesContainer">
+      <div class="chat-messages" ref="messagesContainer" data-testid="message-list">
         <div class="messages-wrapper">
           <div
             v-for="(msg, index) in messages"
             :key="index"
             :class="['message', msg.role]"
+            :data-testid="msg.role === 'assistant' ? 'assistant-message' : 'user-message'"
           >
             <div class="message-avatar">
               <template v-if="msg.role === 'assistant'">
@@ -102,7 +103,7 @@
           </div>
 
           <!-- Loading State -->
-          <div v-if="loading" class="message assistant loading-message">
+          <div v-if="loading" class="message assistant loading-message" data-testid="loading-indicator">
             <div class="message-avatar">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <circle cx="12" cy="12" r="10"/>
@@ -130,12 +131,14 @@
             rows="1"
             ref="inputRef"
             class="chat-input"
+            data-testid="chat-input"
           ></textarea>
           <button
             @click="sendMessage"
             :disabled="loading || !inputMessage.trim()"
             class="send-btn"
             title="发送消息"
+            data-testid="send-button"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="22" y1="2" x2="11" y2="13"/>

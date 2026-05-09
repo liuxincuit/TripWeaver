@@ -34,7 +34,7 @@
         </p>
 
         <div class="hero-actions">
-          <button @click="startNewPlan" class="btn btn-primary btn-large">
+          <button @click="startNewPlan" class="btn btn-primary btn-large" data-testid="new-plan-button">
             <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 5v14M5 12h14"/>
             </svg>
