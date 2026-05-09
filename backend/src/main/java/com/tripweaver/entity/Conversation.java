@@ -19,7 +19,7 @@ public class Conversation {
     @Column(name = "plan_id")
     private Long planId;
 
-    @Column(columnDefinition = "TEXT")
+    @Lob
     private String messages;
 
     @Column(name = "created_at", updatable = false)

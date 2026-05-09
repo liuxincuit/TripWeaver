@@ -27,7 +27,7 @@ public class TravelPlan {
     @Column(name = "end_date")
     private LocalDate endDate;
 
-    @Column(columnDefinition = "TEXT")
+    @Lob
     private String content;
 
     @Column(name = "created_at", updatable = false)
