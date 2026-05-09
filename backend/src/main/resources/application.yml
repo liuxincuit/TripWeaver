@@ -6,8 +6,10 @@ spring:
     name: tripweaver
 
   datasource:
-    url: jdbc:sqlite:./data/tripweaver.db
-    driver-class-name: org.sqlite.JDBC
+    url: jdbc:hsqldb:file:./data/tripweaver;shutdown=true
+    driver-class-name: org.hsqldb.jdbc.JDBCDriver
+    username: sa
+    password:
 
   jpa:
     hibernate:
@@ -16,9 +18,14 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.community.dialect.SQLiteDialect
+        dialect: org.hibernate.dialect.HSQLDialect
 
   ai:
+    chat:
+      memory:
+        repository:
+          jdbc:
+            initialize-schema: always
     openai:
       api-key: ${OPENAI_API_KEY:sk-test-key}
       base-url: ${SPRING_AI_OPENAI_BASE_URL:https://api.openai.com}
