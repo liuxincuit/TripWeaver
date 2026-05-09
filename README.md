@@ -36,7 +36,7 @@ npm run dev
 
 ## 技术栈
 
-- 后端: Java 21 + Spring Boot 3.5.14 + Spring AI 1.1.5
+- 后端: Java 21 + Spring Boot 3.5.14 + Spring AI 1.1.6
 - 前端: Vue 3 + Vite + Pinia + Vue Router
 - 数据库: SQLite
 
