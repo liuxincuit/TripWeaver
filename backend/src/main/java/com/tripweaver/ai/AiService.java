@@ -3,6 +3,7 @@ package com.tripweaver.ai;
 import com.tripweaver.tools.WebSearchTool;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -90,12 +91,12 @@ public class AiService {
                 .content();
     }
 
-    public String chat(String userMessage, String conversationHistory) {
-        String fullPrompt = conversationHistory + "\n\n用户: " + userMessage;
+    public String chat(String userMessage, String conversationId) {
         return chatClient.prompt()
                 .system(SYSTEM_PROMPT)
-                .user(fullPrompt)
+                .user(userMessage)
                 .tools(webSearchTool)
+                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, conversationId))
                 .call()
                 .content();
     }

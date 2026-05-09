@@ -3,9 +3,13 @@ package com.tripweaver.ai;
 import com.tripweaver.tools.WebSearchTool;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.memory.ChatMemory;
+
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -40,5 +44,29 @@ class AiServiceTest {
 
         assertEquals("测试响应", result);
         verify(requestSpec).tools(webSearchTool);
+    }
+
+    @Test
+    void shouldPassConversationIdToAdvisor() {
+        when(chatClient.prompt()).thenReturn(requestSpec);
+        when(requestSpec.system(anyString())).thenReturn(requestSpec);
+        when(requestSpec.user(anyString())).thenReturn(requestSpec);
+        when(requestSpec.tools(any(WebSearchTool.class))).thenReturn(requestSpec);
+        when(requestSpec.advisors(any(Consumer.class))).thenReturn(requestSpec);
+        when(requestSpec.call()).thenReturn(callResponseSpec);
+        when(callResponseSpec.content()).thenReturn("response with history");
+
+        AiService aiService = new AiService(chatClient, webSearchTool);
+        String result = aiService.chat("你好", "conversation-123");
+
+        assertEquals("response with history", result);
+
+        // Verify conversationId was correctly passed to the advisor
+        ArgumentCaptor<Consumer<ChatClient.AdvisorSpec>> captor = ArgumentCaptor.forClass(Consumer.class);
+        verify(requestSpec).advisors(captor.capture());
+
+        ChatClient.AdvisorSpec advisorSpec = mock(ChatClient.AdvisorSpec.class);
+        captor.getValue().accept(advisorSpec);
+        verify(advisorSpec).param(ChatMemory.CONVERSATION_ID, "conversation-123");
     }
 }
