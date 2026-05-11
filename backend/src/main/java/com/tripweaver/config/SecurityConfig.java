@@ -32,6 +32,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                .requestMatchers("/api/health").permitAll()
                 .anyRequest().authenticated()
             )
             .headers(headers -> headers.frameOptions(f -> f.disable()))

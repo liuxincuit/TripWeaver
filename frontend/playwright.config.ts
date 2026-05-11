@@ -21,7 +21,7 @@ export default defineConfig({
   webServer: [
     {
       command: 'cd ../backend && mvn spring-boot:run -q',
-      url: 'http://localhost:8080/api/auth/login',
+      url: 'http://localhost:8080/api/health',
       reuseExistingServer: !process.env.CI,
       timeout: 180000,
     },
