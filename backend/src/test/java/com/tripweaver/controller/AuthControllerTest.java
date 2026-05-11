@@ -99,4 +99,20 @@ class AuthControllerTest {
             .andExpect(jsonPath("$.username").value("testuser"))
             .andExpect(jsonPath("$.email").value("test@example.com"));
     }
+
+    @Test
+    @WithMockUser(username = "testuser")
+    void shouldNotExposePasswordInCurrentUserResponse() throws Exception {
+        User user = new User();
+        user.setId(1L);
+        user.setUsername("testuser");
+        user.setEmail("test@example.com");
+        user.setPassword("hashed_password_secret");
+
+        when(userService.getCurrentUser()).thenReturn(user);
+
+        mockMvc.perform(get("/api/auth/me"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.password").doesNotExist());
+    }
 }

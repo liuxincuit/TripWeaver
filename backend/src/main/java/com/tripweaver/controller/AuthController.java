@@ -3,6 +3,7 @@ package com.tripweaver.controller;
 import com.tripweaver.dto.AuthResponse;
 import com.tripweaver.dto.LoginRequest;
 import com.tripweaver.dto.RegisterRequest;
+import com.tripweaver.dto.UserResponse;
 import com.tripweaver.entity.User;
 import com.tripweaver.service.UserService;
 import jakarta.validation.Valid;
@@ -30,8 +31,13 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<User> getCurrentUser() {
+    public ResponseEntity<UserResponse> getCurrentUser() {
         User user = userService.getCurrentUser();
-        return ResponseEntity.ok(user);
+        UserResponse response = new UserResponse(
+            user.getId(),
+            user.getUsername(),
+            user.getEmail()
+        );
+        return ResponseEntity.ok(response);
     }
 }
