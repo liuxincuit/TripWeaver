@@ -2,6 +2,7 @@ package com.tripweaver.service;
 
 import com.tripweaver.entity.TravelPlan;
 import com.tripweaver.entity.User;
+import com.tripweaver.exception.BusinessException;
 import com.tripweaver.repository.PlanRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,7 +24,7 @@ public class PlanService {
     public TravelPlan getPlanById(Long id) {
         User user = userService.getCurrentUser();
         return planRepository.findByIdAndUserId(id, user.getId())
-                .orElseThrow(() -> new RuntimeException("计划不存在"));
+                .orElseThrow(() -> new BusinessException("计划不存在", "PLAN_NOT_FOUND"));
     }
 
     public void deletePlan(Long id) {
