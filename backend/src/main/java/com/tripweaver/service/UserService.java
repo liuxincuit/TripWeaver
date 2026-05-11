@@ -4,9 +4,11 @@ import com.tripweaver.dto.AuthResponse;
 import com.tripweaver.dto.LoginRequest;
 import com.tripweaver.dto.RegisterRequest;
 import com.tripweaver.entity.User;
+import com.tripweaver.exception.BusinessException;
 import com.tripweaver.repository.UserRepository;
 import com.tripweaver.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -25,11 +27,11 @@ public class UserService {
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("用户名已存在");
+            throw new BusinessException("用户名已存在", "USERNAME_EXISTS", HttpStatus.BAD_REQUEST);
         }
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("邮箱已被注册");
+            throw new BusinessException("邮箱已被注册", "EMAIL_EXISTS", HttpStatus.BAD_REQUEST);
         }
 
         User user = new User();
@@ -51,7 +53,7 @@ public class UserService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("用户不存在"));
+                .orElseThrow(() -> new BusinessException("用户不存在", "USER_NOT_FOUND"));
 
         String token = tokenProvider.generateToken(user.getUsername());
         return new AuthResponse(token, user.getUsername(), user.getEmail());
@@ -60,6 +62,6 @@ public class UserService {
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return userRepository.findByUsername(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("用户不存在"));
+                .orElseThrow(() -> new BusinessException("用户不存在", "USER_NOT_FOUND"));
     }
 }
