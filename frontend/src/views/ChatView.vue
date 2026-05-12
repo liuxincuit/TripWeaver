@@ -180,16 +180,19 @@ onMounted(async () => {
   if (id === 'new') {
     const result = await chatApi.createNewPlan()
     planId.value = result.planId
-    messages.value = [{
-      role: 'assistant',
-      content: '你好！我是 TripWeaver 旅行规划助手。🌍\n\n请告诉我你的旅行想法：想去哪里？什么时候出发？有什么特别的偏好？我会为你量身定制一份完美的旅行计划。'
-    }]
+    // 更新 URL 为实际的 planId，不触发导航
+    router.replace(`/chat/${result.planId}`)
+    // 从后端获取历史消息（包含欢迎消息）
+    const history = await chatApi.getHistory(planId.value)
+    if (history && history.length > 0) {
+      messages.value = history
+    }
   } else {
     planId.value = parseInt(id)
     try {
       const history = await chatApi.getHistory(planId.value)
-      if (history && history.messages) {
-        messages.value = JSON.parse(history.messages)
+      if (history && history.length > 0) {
+        messages.value = history
       }
     } catch (e) {
       console.error('Failed to load history:', e)

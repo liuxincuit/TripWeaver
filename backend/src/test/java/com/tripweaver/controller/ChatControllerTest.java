@@ -2,10 +2,8 @@ package com.tripweaver.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tripweaver.ai.AiService;
-import com.tripweaver.entity.Conversation;
 import com.tripweaver.entity.TravelPlan;
 import com.tripweaver.entity.User;
-import com.tripweaver.repository.ConversationRepository;
 import com.tripweaver.repository.PlanRepository;
 import com.tripweaver.repository.UserRepository;
 import com.tripweaver.security.JwtTokenProvider;
@@ -23,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -49,9 +46,6 @@ class ChatControllerTest {
     @Autowired
     private PlanRepository planRepository;
 
-    @Autowired
-    private ConversationRepository conversationRepository;
-
     @MockBean
     private JwtTokenProvider tokenProvider;
 
@@ -64,7 +58,6 @@ class ChatControllerTest {
     private String token;
     private User testUser;
     private TravelPlan testPlan;
-    private Conversation testConversation;
 
     @BeforeEach
     void setUp() {
@@ -89,12 +82,6 @@ class ChatControllerTest {
         testPlan.setUserId(testUser.getId());
         testPlan.setTitle("测试计划");
         testPlan = planRepository.save(testPlan);
-
-        testConversation = new Conversation();
-        testConversation.setUserId(testUser.getId());
-        testConversation.setPlanId(testPlan.getId());
-        testConversation.setMessages("[]");
-        testConversation = conversationRepository.save(testConversation);
 
         when(aiService.chat(anyString(), anyString())).thenReturn("AI 响应");
     }
@@ -158,23 +145,25 @@ class ChatControllerTest {
     }
 
     @Test
-    void getHistory_shouldReturnConversation_whenExists() throws Exception {
+    void getHistory_shouldReturnMessages_whenHistoryExists() throws Exception {
         mockMvc.perform(get("/api/chat/history/" + testPlan.getId())
                 .header("Authorization", "Bearer " + token))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").exists());
+            .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    void getHistory_shouldReturnEmptyList_whenNoHistory() throws Exception {
+        mockMvc.perform(get("/api/chat/history/" + testPlan.getId())
+                .header("Authorization", "Bearer " + token))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$").isEmpty());
     }
 
     @Test
     void getHistory_shouldRejectUnauthorized() throws Exception {
         mockMvc.perform(get("/api/chat/history/1"))
             .andExpect(status().isForbidden());
-    }
-
-    @Test
-    void getHistory_shouldReturnNotFound_whenNotExists() throws Exception {
-        mockMvc.perform(get("/api/chat/history/999999")
-                .header("Authorization", "Bearer " + token))
-            .andExpect(status().isNotFound());
     }
 }

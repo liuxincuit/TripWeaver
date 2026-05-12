@@ -1,10 +1,9 @@
 package com.tripweaver.service;
 
 import com.tripweaver.ai.AiService;
-import com.tripweaver.entity.Conversation;
+import com.tripweaver.dto.ChatMessageDto;
 import com.tripweaver.entity.TravelPlan;
 import com.tripweaver.entity.User;
-import com.tripweaver.repository.ConversationRepository;
 import com.tripweaver.repository.PlanRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,7 +11,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.security.access.AccessDeniedException;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -26,19 +31,19 @@ class ChatServiceTest {
     private AiService aiService;
 
     @Mock
-    private ConversationRepository conversationRepository;
-
-    @Mock
     private PlanRepository planRepository;
 
     @Mock
     private UserService userService;
 
+    @Mock
+    private ChatMemory chatMemory;
+
     @InjectMocks
     private ChatService chatService;
 
     private User testUser;
-    private Conversation existingConversation;
+    private TravelPlan testPlan;
 
     @BeforeEach
     void setUp() {
@@ -46,38 +51,29 @@ class ChatServiceTest {
         testUser.setId(1L);
         testUser.setUsername("testuser");
 
-        existingConversation = new Conversation();
-        existingConversation.setId(1L);
-        existingConversation.setUserId(1L);
-        existingConversation.setPlanId(100L);
-        existingConversation.setMessages("[]");
+        testPlan = new TravelPlan();
+        testPlan.setId(100L);
+        testPlan.setUserId(1L);
     }
 
     @Test
-    void sendMessage_shouldReturnResponse_whenConversationExists() {
+    void sendMessage_shouldReturnResponse() {
         when(userService.getCurrentUser()).thenReturn(testUser);
-        when(conversationRepository.findByPlanIdAndUserId(100L, 1L))
-                .thenReturn(Optional.of(existingConversation));
+        when(planRepository.findByIdAndUserId(100L, 1L)).thenReturn(Optional.of(testPlan));
         when(aiService.chat("你好", "100")).thenReturn("你好！我是旅行规划助手");
 
         String response = chatService.sendMessage(100L, "你好");
 
         assertEquals("你好！我是旅行规划助手", response);
-        verify(conversationRepository, never()).save(any());
     }
 
     @Test
-    void sendMessage_shouldCreateConversation_whenNotExists() {
+    void sendMessage_shouldThrowAccessDeniedException_whenPlanNotOwnedByUser() {
         when(userService.getCurrentUser()).thenReturn(testUser);
-        when(conversationRepository.findByPlanIdAndUserId(100L, 1L))
-                .thenReturn(Optional.empty());
-        when(conversationRepository.save(any(Conversation.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(aiService.chat("你好", "100")).thenReturn("你好！我是旅行规划助手");
+        when(planRepository.findByIdAndUserId(100L, 1L)).thenReturn(Optional.empty());
 
-        String response = chatService.sendMessage(100L, "你好");
-
-        assertEquals("你好！我是旅行规划助手", response);
-        verify(conversationRepository).save(any(Conversation.class));
+        assertThrows(AccessDeniedException.class, () -> chatService.sendMessage(100L, "你好"));
+        verify(aiService, never()).chat(any(), any());
     }
 
     @Test
@@ -88,35 +84,49 @@ class ChatServiceTest {
             plan.setId(100L);
             return plan;
         });
-        when(conversationRepository.save(any(Conversation.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Long planId = chatService.createNewPlan();
 
         assertEquals(100L, planId);
         verify(planRepository).save(any());
-        verify(conversationRepository).save(any(Conversation.class));
     }
 
     @Test
-    void getConversation_shouldReturnConversation_whenExists() {
+    void getHistory_shouldReturnMessages_whenHistoryExists() {
         when(userService.getCurrentUser()).thenReturn(testUser);
-        when(conversationRepository.findByPlanIdAndUserId(100L, 1L))
-                .thenReturn(Optional.of(existingConversation));
+        when(planRepository.findByIdAndUserId(100L, 1L)).thenReturn(Optional.of(testPlan));
+        List<Message> messages = List.of(
+                new UserMessage("你好"),
+                new AssistantMessage("你好！我是旅行规划助手")
+        );
+        when(chatMemory.get("100")).thenReturn(messages);
 
-        Optional<Conversation> result = chatService.getConversation(100L);
+        List<ChatMessageDto> result = chatService.getHistory(100L);
 
-        assertTrue(result.isPresent());
-        assertEquals(existingConversation, result.get());
+        assertEquals(2, result.size());
+        assertEquals("user", result.get(0).role());
+        assertEquals("你好", result.get(0).content());
+        assertEquals("assistant", result.get(1).role());
+        assertEquals("你好！我是旅行规划助手", result.get(1).content());
     }
 
     @Test
-    void getConversation_shouldReturnEmpty_whenNotExists() {
+    void getHistory_shouldReturnEmptyList_whenNoHistory() {
         when(userService.getCurrentUser()).thenReturn(testUser);
-        when(conversationRepository.findByPlanIdAndUserId(100L, 1L))
-                .thenReturn(Optional.empty());
+        when(planRepository.findByIdAndUserId(100L, 1L)).thenReturn(Optional.of(testPlan));
+        when(chatMemory.get("100")).thenReturn(List.of());
 
-        Optional<Conversation> result = chatService.getConversation(100L);
+        List<ChatMessageDto> result = chatService.getHistory(100L);
 
-        assertFalse(result.isPresent());
+        assertEquals(0, result.size());
+    }
+
+    @Test
+    void getHistory_shouldThrowAccessDeniedException_whenPlanNotOwnedByUser() {
+        when(userService.getCurrentUser()).thenReturn(testUser);
+        when(planRepository.findByIdAndUserId(100L, 1L)).thenReturn(Optional.empty());
+
+        assertThrows(AccessDeniedException.class, () -> chatService.getHistory(100L));
+        verify(chatMemory, never()).get(any());
     }
 }

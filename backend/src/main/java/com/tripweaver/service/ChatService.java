@@ -1,43 +1,39 @@
 package com.tripweaver.service;
 
 import com.tripweaver.ai.AiService;
-import com.tripweaver.entity.Conversation;
+import com.tripweaver.dto.ChatMessageDto;
 import com.tripweaver.entity.TravelPlan;
 import com.tripweaver.entity.User;
-import com.tripweaver.repository.ConversationRepository;
 import com.tripweaver.repository.PlanRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class ChatService {
 
     private final AiService aiService;
-    private final ConversationRepository conversationRepository;
     private final PlanRepository planRepository;
     private final UserService userService;
+    private final ChatMemory chatMemory;
 
     public String sendMessage(Long planId, String message) {
-        User user = userService.getCurrentUser();
-
-        // 确保对话记录存在
-        Conversation conversation = conversationRepository.findByPlanIdAndUserId(planId, user.getId())
-                .orElseGet(() -> {
-                    Conversation newConv = new Conversation();
-                    newConv.setUserId(user.getId());
-                    newConv.setPlanId(planId);
-                    newConv.setMessages("[]");
-                    return conversationRepository.save(newConv);
-                });
-
-        // ChatMemory Advisor 基于 conversationId 自动管理对话历史
-        String response = aiService.chat(message, planId.toString());
-
-        return response;
+        validatePlanOwnership(planId);
+        return aiService.chat(message, planId.toString());
     }
+
+    private static final String WELCOME_MESSAGE = """
+        你好！我是 TripWeaver 旅行规划助手。🌍
+
+        请告诉我你的旅行想法：想去哪里？什么时候出发？有什么特别的偏好？我会为你量身定制一份完美的旅行计划。
+        """;
 
     public Long createNewPlan() {
         User user = userService.getCurrentUser();
@@ -48,18 +44,27 @@ public class ChatService {
 
         TravelPlan savedPlan = planRepository.save(plan);
 
-        // 创建对应的对话
-        Conversation conversation = new Conversation();
-        conversation.setUserId(user.getId());
-        conversation.setPlanId(savedPlan.getId());
-        conversation.setMessages("[]");
-        conversationRepository.save(conversation);
+        // 存储欢迎消息到 ChatMemory
+        chatMemory.add(savedPlan.getId().toString(), List.of(new AssistantMessage(WELCOME_MESSAGE)));
 
         return savedPlan.getId();
     }
 
-    public Optional<Conversation> getConversation(Long planId) {
+    public List<ChatMessageDto> getHistory(Long planId) {
+        validatePlanOwnership(planId);
+        List<Message> messages = chatMemory.get(planId.toString());
+        return messages.stream()
+                .filter(m -> m instanceof UserMessage || m instanceof AssistantMessage)
+                .map(m -> new ChatMessageDto(
+                        m instanceof UserMessage ? "user" : "assistant",
+                        m.getText()
+                ))
+                .toList();
+    }
+
+    private void validatePlanOwnership(Long planId) {
         User user = userService.getCurrentUser();
-        return conversationRepository.findByPlanIdAndUserId(planId, user.getId());
+        planRepository.findByIdAndUserId(planId, user.getId())
+                .orElseThrow(() -> new AccessDeniedException("无权访问此计划"));
     }
 }
