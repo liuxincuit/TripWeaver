@@ -15,8 +15,10 @@ import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -41,22 +43,37 @@ class ChatServiceTest {
     private ChatService chatService;
 
     private User testUser;
+    private TravelPlan testPlan;
 
     @BeforeEach
     void setUp() {
         testUser = new User();
         testUser.setId(1L);
         testUser.setUsername("testuser");
+
+        testPlan = new TravelPlan();
+        testPlan.setId(100L);
+        testPlan.setUserId(1L);
     }
 
     @Test
     void sendMessage_shouldReturnResponse() {
         when(userService.getCurrentUser()).thenReturn(testUser);
+        when(planRepository.findByIdAndUserId(100L, 1L)).thenReturn(Optional.of(testPlan));
         when(aiService.chat("你好", "100")).thenReturn("你好！我是旅行规划助手");
 
         String response = chatService.sendMessage(100L, "你好");
 
         assertEquals("你好！我是旅行规划助手", response);
+    }
+
+    @Test
+    void sendMessage_shouldThrowAccessDeniedException_whenPlanNotOwnedByUser() {
+        when(userService.getCurrentUser()).thenReturn(testUser);
+        when(planRepository.findByIdAndUserId(100L, 1L)).thenReturn(Optional.empty());
+
+        assertThrows(AccessDeniedException.class, () -> chatService.sendMessage(100L, "你好"));
+        verify(aiService, never()).chat(any(), any());
     }
 
     @Test
@@ -77,6 +94,7 @@ class ChatServiceTest {
     @Test
     void getHistory_shouldReturnMessages_whenHistoryExists() {
         when(userService.getCurrentUser()).thenReturn(testUser);
+        when(planRepository.findByIdAndUserId(100L, 1L)).thenReturn(Optional.of(testPlan));
         List<Message> messages = List.of(
                 new UserMessage("你好"),
                 new AssistantMessage("你好！我是旅行规划助手")
@@ -95,10 +113,20 @@ class ChatServiceTest {
     @Test
     void getHistory_shouldReturnEmptyList_whenNoHistory() {
         when(userService.getCurrentUser()).thenReturn(testUser);
+        when(planRepository.findByIdAndUserId(100L, 1L)).thenReturn(Optional.of(testPlan));
         when(chatMemory.get("100")).thenReturn(List.of());
 
         List<ChatMessageDto> result = chatService.getHistory(100L);
 
         assertEquals(0, result.size());
+    }
+
+    @Test
+    void getHistory_shouldThrowAccessDeniedException_whenPlanNotOwnedByUser() {
+        when(userService.getCurrentUser()).thenReturn(testUser);
+        when(planRepository.findByIdAndUserId(100L, 1L)).thenReturn(Optional.empty());
+
+        assertThrows(AccessDeniedException.class, () -> chatService.getHistory(100L));
+        verify(chatMemory, never()).get(any());
     }
 }

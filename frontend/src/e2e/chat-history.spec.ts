@@ -72,6 +72,11 @@ test.describe('聊天历史持久化', () => {
     const userCount = await page.getByTestId('user-message').count();
     const assistantCount = await page.getByTestId('assistant-message').count();
 
+    // 等待后端 ChatMemory 保存完成
+    // Spring AI MessageChatMemoryAdvisor.after() 在 AI 响应返回后同步执行
+    // 但数据库写入可能需要额外时间，添加延迟确保持久化完成
+    await page.waitForTimeout(1000);
+
     // 刷新页面
     await page.reload();
 

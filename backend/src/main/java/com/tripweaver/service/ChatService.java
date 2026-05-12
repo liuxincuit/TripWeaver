@@ -10,6 +10,7 @@ import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,7 +25,7 @@ public class ChatService {
     private final ChatMemory chatMemory;
 
     public String sendMessage(Long planId, String message) {
-        userService.getCurrentUser();
+        validatePlanOwnership(planId);
         return aiService.chat(message, planId.toString());
     }
 
@@ -50,7 +51,7 @@ public class ChatService {
     }
 
     public List<ChatMessageDto> getHistory(Long planId) {
-        userService.getCurrentUser();
+        validatePlanOwnership(planId);
         List<Message> messages = chatMemory.get(planId.toString());
         return messages.stream()
                 .filter(m -> m instanceof UserMessage || m instanceof AssistantMessage)
@@ -59,5 +60,11 @@ public class ChatService {
                         m.getText()
                 ))
                 .toList();
+    }
+
+    private void validatePlanOwnership(Long planId) {
+        User user = userService.getCurrentUser();
+        planRepository.findByIdAndUserId(planId, user.getId())
+                .orElseThrow(() -> new AccessDeniedException("无权访问此计划"));
     }
 }
