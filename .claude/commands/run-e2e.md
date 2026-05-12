@@ -2,4 +2,4 @@
 description: "执行 e2e 测试"
 ---
 
-参考 `.claude\rules\e2e-testing.md`，执行 e2e 测试
+在 frontend 目录下，直接执行 npm run test:e2e，进行 e2e 测试
