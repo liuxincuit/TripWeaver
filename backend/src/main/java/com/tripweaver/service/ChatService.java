@@ -28,6 +28,12 @@ public class ChatService {
         return aiService.chat(message, planId.toString());
     }
 
+    private static final String WELCOME_MESSAGE = """
+        你好！我是 TripWeaver 旅行规划助手。🌍
+
+        请告诉我你的旅行想法：想去哪里？什么时候出发？有什么特别的偏好？我会为你量身定制一份完美的旅行计划。
+        """;
+
     public Long createNewPlan() {
         User user = userService.getCurrentUser();
 
@@ -36,6 +42,10 @@ public class ChatService {
         plan.setTitle("新旅行计划");
 
         TravelPlan savedPlan = planRepository.save(plan);
+
+        // 存储欢迎消息到 ChatMemory
+        chatMemory.add(savedPlan.getId().toString(), List.of(new AssistantMessage(WELCOME_MESSAGE)));
+
         return savedPlan.getId();
     }
 
