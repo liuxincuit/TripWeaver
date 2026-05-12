@@ -1,8 +1,11 @@
 package com.tripweaver.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tripweaver.ai.AiService;
+import com.tripweaver.entity.Conversation;
 import com.tripweaver.entity.TravelPlan;
 import com.tripweaver.entity.User;
+import com.tripweaver.repository.ConversationRepository;
 import com.tripweaver.repository.PlanRepository;
 import com.tripweaver.repository.UserRepository;
 import com.tripweaver.security.JwtTokenProvider;
@@ -18,9 +21,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -30,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-class PlanControllerTest {
+class ChatControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -44,15 +49,22 @@ class PlanControllerTest {
     @Autowired
     private PlanRepository planRepository;
 
+    @Autowired
+    private ConversationRepository conversationRepository;
+
     @MockBean
     private JwtTokenProvider tokenProvider;
 
     @MockBean
     private UserDetailsService userDetailsService;
 
+    @MockBean
+    private AiService aiService;
+
     private String token;
     private User testUser;
     private TravelPlan testPlan;
+    private Conversation testConversation;
 
     @BeforeEach
     void setUp() {
@@ -76,74 +88,79 @@ class PlanControllerTest {
         testPlan = new TravelPlan();
         testPlan.setUserId(testUser.getId());
         testPlan.setTitle("测试计划");
-        testPlan.setDestination("北京");
-        testPlan.setStartDate(LocalDate.of(2026, 6, 1));
-        testPlan.setEndDate(LocalDate.of(2026, 6, 5));
         testPlan = planRepository.save(testPlan);
+
+        testConversation = new Conversation();
+        testConversation.setUserId(testUser.getId());
+        testConversation.setPlanId(testPlan.getId());
+        testConversation.setMessages("[]");
+        testConversation = conversationRepository.save(testConversation);
+
+        when(aiService.chat(anyString(), anyString())).thenReturn("AI 响应");
     }
 
     @Test
-    void shouldGetPlans() throws Exception {
-        mockMvc.perform(get("/api/plans")
-                .header("Authorization", "Bearer " + token))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$").isArray());
-    }
-
-    @Test
-    void shouldRejectUnauthorizedAccess() throws Exception {
-        mockMvc.perform(get("/api/plans"))
-            .andExpect(status().isForbidden());
-    }
-
-    @Test
-    void shouldGetPlanById() throws Exception {
-        mockMvc.perform(get("/api/plans/" + testPlan.getId())
-                .header("Authorization", "Bearer " + token))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.title").value("测试计划"));
-    }
-
-    @Test
-    void shouldRejectUnauthorizedGetPlanById() throws Exception {
-        mockMvc.perform(get("/api/plans/" + testPlan.getId()))
-            .andExpect(status().isForbidden());
-    }
-
-    @Test
-    void shouldDeletePlan() throws Exception {
-        mockMvc.perform(delete("/api/plans/" + testPlan.getId())
-                .header("Authorization", "Bearer " + token))
-            .andExpect(status().isOk());
-    }
-
-    @Test
-    void shouldRejectUnauthorizedDeletePlan() throws Exception {
-        mockMvc.perform(delete("/api/plans/" + testPlan.getId()))
-            .andExpect(status().isForbidden());
-    }
-
-    @Test
-    void shouldUpdatePlan() throws Exception {
-        TravelPlan updates = new TravelPlan();
-        updates.setTitle("更新后的标题");
-
-        mockMvc.perform(put("/api/plans/" + testPlan.getId())
+    void sendMessage_shouldReturnResponse() throws Exception {
+        Map<String, Object> request = Map.of("planId", 1, "message", "你好");
+        mockMvc.perform(post("/api/chat/send")
                 .header("Authorization", "Bearer " + token)
                 .contentType(APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updates)))
+                .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.title").value("更新后的标题"));
+            .andExpect(jsonPath("$.response").exists());
     }
 
     @Test
-    void shouldRejectUnauthorizedUpdatePlan() throws Exception {
-        TravelPlan updates = new TravelPlan();
-        updates.setTitle("更新后的标题");
-
-        mockMvc.perform(put("/api/plans/" + testPlan.getId())
+    void sendMessage_shouldRejectUnauthorized() throws Exception {
+        Map<String, Object> request = Map.of("planId", 1, "message", "你好");
+        mockMvc.perform(post("/api/chat/send")
                 .contentType(APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updates)))
+                .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void sendMessage_shouldFailWithMissingPlanId() throws Exception {
+        Map<String, Object> request = Map.of("message", "你好");
+        mockMvc.perform(post("/api/chat/send")
+                .header("Authorization", "Bearer " + token)
+                .contentType(APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void createNewPlan_shouldReturnPlanId() throws Exception {
+        mockMvc.perform(post("/api/chat/new")
+                .header("Authorization", "Bearer " + token))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.planId").exists());
+    }
+
+    @Test
+    void createNewPlan_shouldRejectUnauthorized() throws Exception {
+        mockMvc.perform(post("/api/chat/new"))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getHistory_shouldReturnConversation_whenExists() throws Exception {
+        mockMvc.perform(get("/api/chat/history/" + testPlan.getId())
+                .header("Authorization", "Bearer " + token))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").exists());
+    }
+
+    @Test
+    void getHistory_shouldRejectUnauthorized() throws Exception {
+        mockMvc.perform(get("/api/chat/history/1"))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getHistory_shouldReturnNotFound_whenNotExists() throws Exception {
+        mockMvc.perform(get("/api/chat/history/999999")
+                .header("Authorization", "Bearer " + token))
+            .andExpect(status().isNotFound());
     }
 }
