@@ -35,3 +35,7 @@ backend/data/
 backend/logs/
 frontend/playwright-report/
 frontend/test-results/
+
+# Claude Code
+.agents/
+.claude/skills/
