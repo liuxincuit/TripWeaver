@@ -1,7 +1,9 @@
 package com.tripweaver.controller;
 
+import com.tripweaver.dto.SendMessageRequest;
 import com.tripweaver.entity.Conversation;
 import com.tripweaver.service.ChatService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,11 +18,8 @@ public class ChatController {
     private final ChatService chatService;
 
     @PostMapping("/send")
-    public ResponseEntity<Map<String, String>> sendMessage(@RequestBody Map<String, Object> request) {
-        Long planId = Long.valueOf(request.get("planId").toString());
-        String message = request.get("message").toString();
-
-        String response = chatService.sendMessage(planId, message);
+    public ResponseEntity<Map<String, String>> sendMessage(@Valid @RequestBody SendMessageRequest request) {
+        String response = chatService.sendMessage(request.getPlanId(), request.getMessage());
         return ResponseEntity.ok(Map.of("response", response));
     }
 

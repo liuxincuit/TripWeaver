@@ -126,7 +126,21 @@ class ChatControllerTest {
                 .header("Authorization", "Bearer " + token)
                 .contentType(APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-            .andExpect(status().isInternalServerError());
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+            .andExpect(jsonPath("$.message").value("planId: planId 不能为空"));
+    }
+
+    @Test
+    void sendMessage_shouldFailWithMissingMessage() throws Exception {
+        Map<String, Object> request = Map.of("planId", 1);
+        mockMvc.perform(post("/api/chat/send")
+                .header("Authorization", "Bearer " + token)
+                .contentType(APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+            .andExpect(jsonPath("$.message").value("message: message 不能为空"));
     }
 
     @Test
