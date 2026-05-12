@@ -8,10 +8,7 @@ paths:
 ## 快速开始
 
 ```bash
-# 1. 启动后端服务
-cd backend && mvn spring-boot:run
-
-# 2. 运行 E2E 测试（新终端）
+# 运行 E2E 测试（新终端）
 cd frontend && npm run test:e2e
 
 # 带 UI 运行
