@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.ai.chat.memory.ChatMemory;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -27,6 +28,9 @@ class PlanServiceTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private ChatMemory chatMemory;
 
     @InjectMocks
     private PlanService planService;
@@ -96,10 +100,43 @@ class PlanServiceTest {
     @Test
     void deletePlan_shouldDelete() {
         when(userService.getCurrentUser()).thenReturn(testUser);
+        when(planRepository.deleteByIdAndUserId(1L, 1L)).thenReturn(1);
 
         planService.deletePlan(1L);
 
         verify(planRepository).deleteByIdAndUserId(1L, 1L);
+    }
+
+    @Test
+    void deletePlan_shouldClearChatMemory() {
+        when(userService.getCurrentUser()).thenReturn(testUser);
+        when(planRepository.deleteByIdAndUserId(1L, 1L)).thenReturn(1);
+
+        planService.deletePlan(1L);
+
+        verify(chatMemory).clear("1");
+    }
+
+    @Test
+    void deletePlan_shouldThrowException_whenNotExists() {
+        when(userService.getCurrentUser()).thenReturn(testUser);
+        when(planRepository.deleteByIdAndUserId(999L, 1L)).thenReturn(0);
+
+        BusinessException exception = assertThrows(BusinessException.class,
+            () -> planService.deletePlan(999L));
+
+        assertEquals("PLAN_NOT_FOUND", exception.getErrorCode());
+    }
+
+    @Test
+    void deletePlan_shouldHandleChatMemoryClearFailure() {
+        when(userService.getCurrentUser()).thenReturn(testUser);
+        when(planRepository.deleteByIdAndUserId(1L, 1L)).thenReturn(1);
+        doThrow(new RuntimeException("ChatMemory error")).when(chatMemory).clear("1");
+
+        planService.deletePlan(1L);
+
+        verify(chatMemory).clear("1");
     }
 
     @Test

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
@@ -16,6 +17,9 @@ import static org.junit.jupiter.api.Assertions.*;
 @DataJpaTest
 @ActiveProfiles("test")
 class PlanRepositoryTest {
+
+    @Autowired
+    private TestEntityManager entityManager;
 
     @Autowired
     private PlanRepository planRepository;
@@ -72,11 +76,15 @@ class PlanRepositoryTest {
 
     @Test
     void shouldDeleteByIdAndUserId() {
-        TravelPlan saved = planRepository.save(testPlan);
+        TravelPlan saved = entityManager.persistAndFlush(testPlan);
+        Long savedId = saved.getId();
 
-        planRepository.deleteByIdAndUserId(saved.getId(), 1L);
+        int deleted = planRepository.deleteByIdAndUserId(savedId, 1L);
+        entityManager.flush();
+        entityManager.clear();
 
-        Optional<TravelPlan> found = planRepository.findById(saved.getId());
+        assertEquals(1, deleted);
+        Optional<TravelPlan> found = planRepository.findById(savedId);
         assertFalse(found.isPresent());
     }
 }

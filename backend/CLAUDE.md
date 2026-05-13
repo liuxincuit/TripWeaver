@@ -8,7 +8,7 @@ TripWeaver 后端 - 基于 Spring Boot 的 AI 旅行规划服务。
 
 ```bash
 mvn spring-boot:run                              # 启动开发服务器 (端口 8080)
-mvn test                                         # 运行所有测试
+mvn clean test                                   # 运行所有测试
 mvn test -Dtest=ClassName                        # 运行单个测试类
 mvn test -Dtest=ClassName#methodName             # 运行单个测试方法
 mvn test -Dtest=ClassName#methodName -q          # 运行单个测试方法 (安静模式)
@@ -54,6 +54,21 @@ com.tripweaver/
 - 生产: SQLite (`./data/tripweaver.db`)，使用 Hibernate 社区方言
 - 测试: H2 内存数据库 (`application-test.yml`)
 - DDL: 生产 `update`，测试 `create-drop`
+
+## 设计决策
+
+### 计划删除与聊天记忆清理
+
+删除计划时采用**最终一致性**设计：
+
+- 计划删除操作在数据库事务中执行
+- 聊天记忆清理（`chatMemory.clear()`）在事务提交后执行
+- 如果聊天记忆清理失败，仅记录警告日志，不影响删除操作成功
+
+**设计理由**：
+- ChatMemory 是外部存储（Redis/内存），其故障不应阻止用户删除计划
+- 孤立的聊天记忆不影响系统功能，可通过定期清理任务处理
+- 保证删除操作的可用性比强一致性更重要
 
 ## 依赖管理
 

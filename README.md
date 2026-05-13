@@ -54,7 +54,7 @@ npm run dev
 
 ```bash
 # 后端
-cd backend && mvn test
+cd backend && mvn clean test
 
 # 前端
 cd frontend && npm run test:run
