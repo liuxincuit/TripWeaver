@@ -5,16 +5,21 @@ import com.tripweaver.entity.User;
 import com.tripweaver.exception.BusinessException;
 import com.tripweaver.repository.PlanRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PlanService {
 
     private final PlanRepository planRepository;
     private final UserService userService;
+    private final ChatMemory chatMemory;
 
     public List<TravelPlan> getUserPlans() {
         User user = userService.getCurrentUser();
@@ -27,9 +32,15 @@ public class PlanService {
                 .orElseThrow(() -> new BusinessException("计划不存在", "PLAN_NOT_FOUND"));
     }
 
+    @Transactional
     public void deletePlan(Long id) {
         User user = userService.getCurrentUser();
         planRepository.deleteByIdAndUserId(id, user.getId());
+        try {
+            chatMemory.clear(String.valueOf(id));
+        } catch (Exception e) {
+            log.warn("清理计划 {} 的聊天记忆失败: {}", id, e.getMessage());
+        }
     }
 
     public TravelPlan savePlan(TravelPlan plan) {

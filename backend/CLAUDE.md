@@ -8,7 +8,7 @@ TripWeaver 后端 - 基于 Spring Boot 的 AI 旅行规划服务。
 
 ```bash
 mvn spring-boot:run                              # 启动开发服务器 (端口 8080)
-mvn test                                         # 运行所有测试
+mvn clean test                                   # 运行所有测试
 mvn test -Dtest=ClassName                        # 运行单个测试类
 mvn test -Dtest=ClassName#methodName             # 运行单个测试方法
 mvn test -Dtest=ClassName#methodName -q          # 运行单个测试方法 (安静模式)

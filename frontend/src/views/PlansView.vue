@@ -43,7 +43,7 @@
               <div class="plan-status" :class="plan.status">
                 {{ getStatusText(plan.status) }}
               </div>
-              <button class="plan-menu-btn" @click.stop="showMenu($event, plan)">
+              <button class="plan-menu-btn" @click.stop="showMenu($event, plan)" :data-testid="`menu-btn-${plan.id}`">
                 <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
                   <circle cx="12" cy="5" r="2"/>
                   <circle cx="12" cy="12" r="2"/>
@@ -127,7 +127,7 @@
         </svg>
         继续对话
       </button>
-      <button class="menu-item danger" @click="deletePlan(contextMenu.plan)">
+      <button class="menu-item danger" @click="deletePlan(contextMenu.plan)" data-testid="delete-plan-btn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
           <polyline points="3 6 5 6 21 6"/>
           <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>

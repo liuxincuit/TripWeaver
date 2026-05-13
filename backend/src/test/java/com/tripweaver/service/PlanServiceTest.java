@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.ai.chat.memory.ChatMemory;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -27,6 +28,9 @@ class PlanServiceTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private ChatMemory chatMemory;
 
     @InjectMocks
     private PlanService planService;
@@ -100,6 +104,15 @@ class PlanServiceTest {
         planService.deletePlan(1L);
 
         verify(planRepository).deleteByIdAndUserId(1L, 1L);
+    }
+
+    @Test
+    void deletePlan_shouldClearChatMemory() {
+        when(userService.getCurrentUser()).thenReturn(testUser);
+
+        planService.deletePlan(1L);
+
+        verify(chatMemory).clear("1");
     }
 
     @Test
