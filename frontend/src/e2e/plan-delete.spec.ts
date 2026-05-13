@@ -51,5 +51,8 @@ test.describe('计划删除级联清理', () => {
     
     const planCountAfter = await page.getByTestId(/menu-btn-/).count();
     expect(planCountAfter).toBe(planCountBefore - 1);
+
+    const historyResponse = await page.request.get(`/api/chat/history/${planId}`);
+    expect(historyResponse.status()).toBe(404);
   });
 });

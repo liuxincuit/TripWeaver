@@ -35,7 +35,10 @@ public class PlanService {
     @Transactional
     public void deletePlan(Long id) {
         User user = userService.getCurrentUser();
-        planRepository.deleteByIdAndUserId(id, user.getId());
+        int deleted = planRepository.deleteByIdAndUserId(id, user.getId());
+        if (deleted == 0) {
+            throw new BusinessException("计划不存在或无权删除", "PLAN_NOT_FOUND");
+        }
         try {
             chatMemory.clear(String.valueOf(id));
         } catch (Exception e) {
