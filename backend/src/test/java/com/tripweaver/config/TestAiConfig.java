@@ -2,7 +2,7 @@ package com.tripweaver.config;
 
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
-import org.springframework.ai.chat.memory.MessageWindowChatMemory;
+import com.tripweaver.chat.memory.TokenWindowChatMemory;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
@@ -11,8 +11,9 @@ public class TestAiConfig {
 
     @Bean
     public ChatMemory chatMemory() {
-        return MessageWindowChatMemory.builder()
+        return TokenWindowChatMemory.builder()
                 .chatMemoryRepository(new InMemoryChatMemoryRepository())
+                .maxTokens(100000)
                 .maxMessages(20)
                 .build();
     }
