@@ -26,6 +26,9 @@ spring:
         repository:
           jdbc:
             initialize-schema: always
+        token-window:
+          max-tokens: ${AI_CHAT_MEMORY_MAX_TOKENS:100000}
+          max-messages: ${AI_CHAT_MEMORY_MAX_MESSAGES:20}
     openai:
       api-key: ${OPENAI_API_KEY:sk-test-key}
       base-url: ${SPRING_AI_OPENAI_BASE_URL:https://api.openai.com}
