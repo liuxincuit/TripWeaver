@@ -31,12 +31,12 @@ class TokenWindowChatMemoryTest {
     @Test
     void shouldKeepMessagesWithinTokenLimit() {
         List<Message> messages = List.of(
-                new UserMessage("Hello world. Hello world. Hello world. Hello world."),
-                new AssistantMessage("Hello world. Hello world. Hello world. Hello world."),
-                new UserMessage("Hello world. Hello world. Hello world. Hello world."),
-                new AssistantMessage("Hello world. Hello world. Hello world. Hello world."),
-                new UserMessage("Hello world. Hello world. Hello world. Hello world."),
-                new AssistantMessage("Hello world. Hello world. Hello world. Hello world.")
+                new UserMessage("Hello world. Hello world. Hello world. Hello world. Hello world. Hello world. Hello world. Hello world. Hello world. Hello world."),
+                new AssistantMessage("Hello world. Hello world. Hello world. Hello world. Hello world. Hello world. Hello world. Hello world. Hello world. Hello world."),
+                new UserMessage("Hello world. Hello world. Hello world. Hello world. Hello world. Hello world. Hello world. Hello world. Hello world. Hello world."),
+                new AssistantMessage("Hello world. Hello world. Hello world. Hello world. Hello world. Hello world. Hello world. Hello world. Hello world. Hello world."),
+                new UserMessage("Hello world. Hello world. Hello world. Hello world. Hello world. Hello world. Hello world. Hello world. Hello world. Hello world."),
+                new AssistantMessage("Hello world. Hello world. Hello world. Hello world. Hello world. Hello world. Hello world. Hello world. Hello world. Hello world.")
         );
 
         chatMemory.add(CONVERSATION_ID, messages);
